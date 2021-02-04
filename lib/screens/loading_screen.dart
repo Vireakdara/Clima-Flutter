@@ -1,11 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
-import '../services/location.dart';
-
-const apiKey = "72d8a7df3d2cfa42e98082f3e3d5b5dd";
+import '../services/weather.dart';
+import 'location_screen.dart';
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -13,47 +10,29 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  double latitude;
-  double longitude;
-
-  void getLocation() async {
-    Location location = Location();
-    await location.getCurrentLocation();
-    latitude = location.latitude;
-    longitude = location.longitude;
-    print("latitude $latitude");
-    print("longitude $longitude");
-  }
-
-  Future<void> getData() async {
-    http.Response response = await http.get(
-        "https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey");
-    if (response.statusCode == 200) {
-      String data = response.body;
-      var decodedData = jsonDecode(data);
-
-      double temperature = decodedData["main"]["temp"];
-      int condition = decodedData["weather"][0]["id"];
-      String city = decodedData["sys"]["country"];
-
-      print(temperature);
-      print(condition);
-      print(city);
-    } else {
-      print(response.statusCode);
-    }
+  void getLocationData() async {
+    var weatherData = await WeatherModel().getLocationWeather();
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return LocationScreen(locationWeather: weatherData);
+    }));
   }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    getLocation();
+    getLocationData();
   }
 
   @override
   Widget build(BuildContext context) {
-    getData();
-    return Scaffold();
+    return Scaffold(
+      body: Center(
+        child: SpinKitPouringHourglass(
+          color: Colors.white,
+          size: 100.0,
+        ),
+      ),
+    );
   }
 }
